@@ -35,7 +35,9 @@ struct status_state {
 #else
     bool connected;
 #endif
+    bool locked;
 };
+
 
 void to_uppercase(char *str);
 void rotate_canvas(lv_obj_t *canvas);

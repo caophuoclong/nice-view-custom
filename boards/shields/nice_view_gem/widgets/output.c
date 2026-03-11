@@ -40,11 +40,16 @@ static void draw_ble_connected(lv_obj_t *canvas) {
 void draw_output_status(lv_obj_t *canvas, const struct status_state *state) {
     lv_draw_label_dsc_t label_dsc;
     init_label_dsc(&label_dsc, LVGL_FOREGROUND, &pixel_operator_mono, LV_TEXT_ALIGN_LEFT);
-    canvas_draw_text(canvas, 0, 1, 25, &label_dsc, "SIG");
+    
+    if (state->locked) {
+        canvas_draw_text(canvas, 0, 1, 35, &label_dsc, "LOCK");
+    } else {
+        canvas_draw_text(canvas, 0, 1, 25, &label_dsc, "SIG");
+    }
 
-    lv_draw_rect_dsc_t rect_white_dsc;
-    init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
-    canvas_draw_rect(canvas, 43, 0, 24, 15, &rect_white_dsc);
+    lv_draw_rect_dsc_t rect_dsc;
+    init_rect_dsc(&rect_dsc, state->locked ? LVGL_FOREGROUND : LVGL_FOREGROUND); // Keep same for now, but could invert
+    canvas_draw_rect(canvas, 43, 0, 24, 15, &rect_dsc);
 
 #if !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     switch (state->selected_endpoint.transport) {

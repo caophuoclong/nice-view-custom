@@ -17,6 +17,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/keymap.h>
 #include <zmk/usb.h>
 #include <zmk/wpm.h>
+#include <zmk/studio/core.h>
+
 
 #include "battery.h"
 #include "layer.h"
@@ -197,6 +199,31 @@ ZMK_DISPLAY_WIDGET_LISTENER(widget_wpm_status, struct wpm_status_state, wpm_stat
 ZMK_SUBSCRIPTION(widget_wpm_status, zmk_wpm_state_changed);
 
 /**
+ * Lock status
+ */
+
+static void set_lock_status(struct zmk_widget_screen *widget, bool locked) {
+    widget->state.locked = locked;
+    draw_top(widget->obj, &widget->state);
+}
+
+static void lock_status_update_cb(bool locked) {
+    struct zmk_widget_screen *widget;
+    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_lock_status(widget, locked); }
+}
+
+static bool lock_status_get_state(const zmk_event_t *eh) {
+    const struct zmk_studio_core_lock_state_changed *ev = as_zmk_studio_core_lock_state_changed(eh);
+    if (ev) {
+        return ev->state == ZMK_STUDIO_CORE_LOCK_STATE_LOCKED;
+    }
+    return zmk_studio_core_get_lock_state() == ZMK_STUDIO_CORE_LOCK_STATE_LOCKED;
+}
+
+ZMK_DISPLAY_WIDGET_LISTENER(widget_lock_status, bool, lock_status_update_cb, lock_status_get_state)
+ZMK_SUBSCRIPTION(widget_lock_status, zmk_studio_core_lock_state_changed);
+
+/**
  * Initialization
  **/
 
@@ -223,8 +250,10 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
     widget_layer_status_init();
     widget_output_status_init();
     widget_wpm_status_init();
+    widget_lock_status_init();
 
     return 0;
 }
+
 
 lv_obj_t *zmk_widget_screen_obj(struct zmk_widget_screen *widget) { return widget->obj; }

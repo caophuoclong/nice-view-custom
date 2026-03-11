@@ -9,14 +9,16 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/events/endpoint_changed.h>
 #include <zmk/events/layer_state_changed.h>
 #include <zmk/events/usb_conn_state_changed.h>
+#if IS_ENABLED(CONFIG_ZMK_WPM)
 #include <zmk/events/wpm_state_changed.h>
+#include <zmk/wpm.h>
+#endif
 #include <zmk/battery.h>
 #include <zmk/ble.h>
 #include <zmk/display.h>
 #include <zmk/endpoints.h>
 #include <zmk/keymap.h>
 #include <zmk/usb.h>
-#include <zmk/wpm.h>
 #include <zmk/studio/core.h>
 
 
@@ -50,7 +52,9 @@ static void draw_middle(lv_obj_t *widget, const struct status_state *state) {
     fill_background(canvas);
 
     // Draw widgets
+#if IS_ENABLED(CONFIG_ZMK_WPM)
     draw_wpm_status(canvas, state);
+#endif
 
     // Rotate for horizontal display
     rotate_canvas(canvas);
@@ -176,6 +180,8 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
  * WPM status
  **/
 
+#if IS_ENABLED(CONFIG_ZMK_WPM)
+
 static void set_wpm_status(struct zmk_widget_screen *widget, struct wpm_status_state state) {
     for (int i = 0; i < 9; i++) {
         widget->state.wpm[i] = widget->state.wpm[i + 1];
@@ -197,6 +203,8 @@ struct wpm_status_state wpm_status_get_state(const zmk_event_t *eh) {
 ZMK_DISPLAY_WIDGET_LISTENER(widget_wpm_status, struct wpm_status_state, wpm_status_update_cb,
                             wpm_status_get_state)
 ZMK_SUBSCRIPTION(widget_wpm_status, zmk_wpm_state_changed);
+
+#endif
 
 /**
  * Lock status
@@ -249,7 +257,9 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
     widget_battery_status_init();
     widget_layer_status_init();
     widget_output_status_init();
+#if IS_ENABLED(CONFIG_ZMK_WPM)
     widget_wpm_status_init();
+#endif
     widget_lock_status_init();
 
     return 0;
